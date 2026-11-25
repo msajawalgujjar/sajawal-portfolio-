@@ -16,8 +16,12 @@ async function audit(name){
 }
 const click=(name)=>page.getByRole('button',{name,exact:true}).filter({visible:true}).click();
 try{
+  const health=await session.request.get(url+'/api/health');assert.equal(health.status(),200);
+  assert.equal((await health.json()).status,'ok');record.databaseHealth='ok';
+  const begin=Date.now();
   const response=await page.goto(url,{waitUntil:'domcontentloaded'});assert.equal(response.status(),200);
   await page.getByRole('button',{name:'Source analyst, Research'}).waitFor();
+  record.timeToInteractiveMs=Date.now()-begin;
   for(const width of [320,375,390,430,768,1024,1440,1920]){
     await page.setViewportSize({width,height:width<768?850:900});
     const views=[];
