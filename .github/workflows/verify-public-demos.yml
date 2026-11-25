@@ -1,0 +1,35 @@
+name: Verify public portfolio demos
+on:
+  workflow_dispatch:
+  push:
+    branches: [qa/flagship-demo-releases]
+    paths:
+      - '.github/workflows/verify-public-demos.yml'
+      - 'qa/**'
+permissions:
+  contents: read
+jobs:
+  agentos:
+    name: AgentOS public demo
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Install locked QA tools
+        working-directory: qa
+        run: npm ci --ignore-scripts --no-fund
+      - name: Locate the standard runner browser
+        run: test -x /usr/bin/google-chrome
+      - name: Exercise the public application
+        working-directory: qa
+        run: node verify-agentos.mjs
+      - name: Retain viewport and workflow evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: public-agentos-evidence
+          path: qa/evidence/
+          retention-days: 1
